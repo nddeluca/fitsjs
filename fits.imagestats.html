@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><title>fits.imagestats</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="fits.imagestats"><meta name="groc-project-path" content="src/fits.imagestats.coffee"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/fits.imagestats.coffee</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;jDataView/src/jdataview&#39;</span><span class="p">)</span>
+<span class="nv">Header    = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./fits.header&#39;</span><span class="p">)</span>
+<span class="nv">Image     = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./fits.image&#39;</span><span class="p">)</span>
+<span class="nv">CompImage = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./fits.compressedimage&#39;</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Compute basic statistics for a image</p></div></div><div class="code"><div class="wrapper"><span class="k">class</span> <span class="nx">ImageStats</span>
+
+  <span class="nv">constructor: </span><span class="nf">(@image) -&gt;</span>
+    <span class="p">[</span><span class="nx">@minimum</span><span class="p">,</span> <span class="nx">@maximum</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@image</span><span class="p">.</span><span class="nx">getExtremes</span><span class="p">()</span>
+    <span class="vi">@pixels = </span><span class="nx">@image</span><span class="p">.</span><span class="nx">naxis</span><span class="p">.</span><span class="nx">reduce</span><span class="p">(</span><span class="nf">(a, b) -&gt;</span> <span class="nx">a</span> <span class="o">*</span> <span class="nx">b</span><span class="p">)</span>
+    
+    <span class="vi">@mean       = </span><span class="kc">undefined</span>
+    <span class="vi">@std        = </span><span class="kc">undefined</span>
+    <span class="vi">@histogram  = </span><span class="kc">undefined</span>
+    <span class="vi">@bins       = </span><span class="kc">undefined</span>
+
+  <span class="nv">computeMean: </span><span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">@mean</span> <span class="k">if</span> <span class="nx">@mean</span><span class="o">?</span>
+    
+    <span class="nv">sum = </span><span class="mi">0</span>
+    <span class="nx">sum</span> <span class="o">+=</span> <span class="nx">pixel</span> <span class="k">for</span> <span class="nx">pixel</span> <span class="k">in</span> <span class="nx">@image</span><span class="p">.</span><span class="nx">data</span>
+    <span class="vi">@mean = </span><span class="nx">sum</span> <span class="err">/ @pixels</span>
+
+  <span class="nv">computeSTD: </span><span class="o">-&gt;</span>
+    <span class="k">return</span> <span class="nx">@std</span> <span class="k">if</span> <span class="nx">@std</span><span class="o">?</span>
+    <span class="nx">@computeMean</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">@mean</span><span class="o">?</span>
+    
+    <span class="nv">sum = </span><span class="mi">0</span>
+    <span class="k">for</span> <span class="nx">pixel</span> <span class="k">in</span> <span class="nx">@image</span><span class="p">.</span><span class="nx">data</span>
+      <span class="nv">diff = </span><span class="nx">pixel</span> <span class="o">-</span> <span class="nx">@mean</span>
+      <span class="nx">sum</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">diff</span> <span class="o">*</span> <span class="nx">diff</span><span class="p">)</span>
+    <span class="vi">@std = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">sum</span> <span class="err">/ @pixels)</span>
+
+  <span class="nv">computeHistogram: </span><span class="nf">(@bins = 100) -&gt;</span>
+    <span class="nv">range       = </span><span class="nx">@maximum</span> <span class="o">-</span> <span class="nx">@minimum</span>
+    <span class="nv">binSize     = </span><span class="nx">range</span> <span class="err">/ @bins</span>
+    <span class="nv">data        = </span><span class="nx">@image</span><span class="p">.</span><span class="nx">data</span>
+    
+    <span class="k">if</span> <span class="nx">@pixels</span> <span class="o">&lt;</span> <span class="mi">256</span>
+      <span class="nv">arrayType = </span><span class="nx">Uint8Array</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="nx">@pixels</span> <span class="o">&lt;</span> <span class="mi">65535</span>
+      <span class="nv">arrayType = </span><span class="nx">Uint16Array</span>
+    <span class="k">else</span>
+      <span class="nv">arrayType = </span><span class="nx">Uint32Array</span>
+    
+    <span class="vi">@histogram = </span><span class="k">new</span> <span class="nx">arrayType</span><span class="p">(</span><span class="nx">@bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="nx">pixel</span> <span class="k">in</span> <span class="nx">data</span>
+      <span class="nv">index = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(((</span><span class="nx">pixel</span> <span class="o">-</span> <span class="nx">@minimum</span><span class="p">)</span> <span class="o">/</span> <span class="nx">range</span><span class="p">)</span> <span class="o">*</span> <span class="nx">@bins</span><span class="p">)</span>
+      <span class="nx">@histogram</span><span class="p">[</span><span class="nx">index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="nx">@histogram</span>
+    
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">ImageStats</span></div></div></div></div></body></html>

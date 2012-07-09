@@ -1,0 +1,300 @@
+<!DOCTYPE html><html lang="en"><head><title>fits.visualize</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="fits.visualize"><meta name="groc-project-path" content="src/fits.visualize.coffee"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/fits.visualize.coffee</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><p>Helper class for initializng a WebGL viewer for a FITS image</p></div></div><div class="code"><div class="wrapper"><span class="k">class</span> <span class="nx">Visualize</span>
+  <span class="vi">@GET_A_WEBGL_BROWSER = </span><span class="s1">&#39;&#39;</span> <span class="o">+</span> <span class="s1">&#39;This page requires a browser that supports WebGL.&lt;br/&gt;&#39;</span> <span class="o">+</span> <span class="s1">&#39;&lt;a href=&quot;http://get.webgl.org&quot;&gt;Click here to upgrade your browser.&lt;/a&gt;&#39;</span>
+  <span class="vi">@OTHER_PROBLEM = </span><span class="s1">&#39;&#39;</span> <span class="o">+</span> <span class="s2">&quot;It doesn&#39;t appear your computer can support WebGL.&lt;br/&gt;&quot;</span> <span class="o">+</span> <span class="s1">&#39;&lt;a href=&quot;http://get.webgl.org/troubleshooting/&quot;&gt;Click here for more information.&lt;/a&gt;&#39;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>WebGL Vertex Shader</p></div></div><div class="code"><div class="wrapper">  <span class="vi">@vertexShader = </span><span class="p">[</span>
+    <span class="s2">&quot;attribute vec2 a_position;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gl_Position = vec4(a_position, 0, 1);&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;}&quot;</span>
+  <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>WebGL Fragment Shaders</p></div></div><div class="code"><div class="wrapper">  <span class="vi">@fragmentShaders =</span>
+    <span class="nv">linear: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span><span class="p">,</span>
+      
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span><span class="p">,</span>
+      
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v = texture2D(u_tex, texCoord);&quot;</span><span class="p">,</span>
+      
+          <span class="s2">&quot;float min = u_extremes[0];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float max = u_extremes[1];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float pixel = (pixel_v[0] - min) / (max - min);&quot;</span><span class="p">,</span>
+      
+          <span class="s2">&quot;gl_FragColor = vec4(pixel, pixel, pixel, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="nv">logarithm: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span>
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span>
+      <span class="s2">&quot;uniform sampler2D u_tex;&quot;</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span>
+
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v = texture2D(u_tex, texCoord);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float min = log(u_extremes[0]);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float max = log(u_extremes[1]);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float pixel = (log(pixel_v[0]) - min) / (max - min);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;gl_FragColor = vec4(pixel, pixel, pixel, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="nv">sqrt: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v = texture2D(u_tex, texCoord);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float min = sqrt(u_extremes[0]);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float max = sqrt(u_extremes[1]);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float pixel = (sqrt(pixel_v[0]) - min) / (max - min);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;gl_FragColor = vec4(pixel, pixel, pixel, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="nv">arcsinh: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;float arcsinh(float value) {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;return log(value + sqrt(1.0 + value * value));&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v = texture2D(u_tex, texCoord);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float min = arcsinh(u_extremes[0]);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float max = arcsinh(u_extremes[1]);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float value = arcsinh(pixel_v[0]);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float pixel = (value - min) / (max - min);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;gl_FragColor = vec4(pixel, pixel, pixel, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="nv">power: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v = texture2D(u_tex, texCoord);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float min = pow(u_extremes[0], 2.0);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float max = pow(u_extremes[1], 2.0);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float pixel = (pow(pixel_v[0], 2.0) - min) / (max - min);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;gl_FragColor = vec4(pixel, pixel, pixel, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="nv">color: </span><span class="p">[</span>
+      <span class="s2">&quot;precision mediump float;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_resolution;&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;uniform sampler2D u_tex_g;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex_r;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform sampler2D u_tex_i;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;uniform vec2 u_extremes;&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;float arcsinh(float value) {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;return log(value + sqrt(1.0 + value * value));&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;float f(float minimum, float maximum, float value) {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float pixel = clamp(value, minimum, maximum);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float alpha = 0.02;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float Q = 8.0;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;return arcsinh(alpha * Q * (pixel - minimum)) / Q;&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span><span class="p">,</span>
+
+      <span class="s2">&quot;void main() {&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec2 texCoord = gl_FragCoord.xy / u_resolution;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v_g = texture2D(u_tex_g, texCoord);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v_r = texture2D(u_tex_r, texCoord);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;vec4 pixel_v_i = texture2D(u_tex_i, texCoord);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float minimum = u_extremes[0];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float maximum = u_extremes[1];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float g = pixel_v_g[0];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float r = pixel_v_r[0];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float i = pixel_v_i[0];&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float I = (g + r + i) / 3.0;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float fI = f(minimum, maximum, I);&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float fII = fI / I;&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float R = i * fII;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float G = r * fII;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;float B = g * fII;&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;float RGBmax = max(max(R, G), B);&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;if (RGBmax &gt; 1.0) {&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;R = R / RGBmax;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;G = G / RGBmax;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;B = B / RGBmax;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;}&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;if (I == 0.0) {&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;R = 0.0;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;G = 0.0;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;B = 0.0;&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;}&quot;</span><span class="p">,</span>
+
+          <span class="s2">&quot;gl_FragColor = vec4(R, G, B, 1.0);&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;}&quot;</span>
+    <span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Initializes the Visualize object and starts a WebGL program</p></div></div><div class="code"><div class="wrapper">  <span class="nv">constructor: </span><span class="nf">(@imgset, @el) -&gt;</span>
+    <span class="nx">@imgset</span><span class="p">.</span><span class="nx">getExtremes</span><span class="p">()</span>
+    <span class="vi">@width    = </span><span class="nx">@imgset</span><span class="p">.</span><span class="nx">getWidth</span><span class="p">()</span>
+    <span class="vi">@height   = </span><span class="nx">@imgset</span><span class="p">.</span><span class="nx">getHeight</span><span class="p">()</span>
+    <span class="vi">@minimum  = </span><span class="nx">@imgset</span><span class="p">.</span><span class="nx">minimum</span>
+    <span class="vi">@maximum  = </span><span class="nx">@imgset</span><span class="p">.</span><span class="nx">maximum</span>
+    <span class="nx">@setupUI</span><span class="p">(</span><span class="nx">@width</span><span class="p">,</span> <span class="nx">@height</span><span class="p">)</span>
+
+    <span class="vi">@gl = </span><span class="nx">@setupWebGL</span><span class="p">()</span>
+    <span class="nx">unless</span> <span class="nx">@gl</span>
+      <span class="nx">alert</span> <span class="s2">&quot;No WebGL&quot;</span>
+      <span class="k">return</span> <span class="kc">null</span>
+    
+    <span class="vi">@ext = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getExtension</span><span class="p">(</span><span class="s2">&quot;OES_texture_float&quot;</span><span class="p">)</span>
+    <span class="nx">unless</span> <span class="nx">@ext</span>
+      <span class="nx">alert</span> <span class="s2">&quot;No OES_texture_float&quot;</span>
+      <span class="k">return</span> <span class="kc">null</span>
+
+    <span class="nv">vertexShader    = </span><span class="nx">@loadShader</span><span class="p">(</span><span class="nx">Visualize</span><span class="p">.</span><span class="nx">vertexShader</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">VERTEX_SHADER</span><span class="p">)</span>
+    <span class="vi">@fragmentShader  = </span><span class="nx">@loadShader</span><span class="p">(</span><span class="nx">Visualize</span><span class="p">.</span><span class="nx">fragmentShaders</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">],</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">FRAGMENT_SHADER</span><span class="p">)</span>
+    <span class="nx">@createProgram</span><span class="p">([</span><span class="nx">vertexShader</span><span class="p">,</span> <span class="nx">@fragmentShader</span><span class="p">])</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">useProgram</span><span class="p">(</span><span class="nx">@program</span><span class="p">)</span>
+    
+    <span class="nv">positionLocation    = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getAttribLocation</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="s2">&quot;a_position&quot;</span><span class="p">)</span>
+    <span class="nv">resolutionLocation  = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="s2">&quot;u_resolution&quot;</span><span class="p">)</span>
+    <span class="vi">@stretchLocation    = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="s2">&quot;u_stretch&quot;</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">uniform2f</span><span class="p">(</span><span class="nx">resolutionLocation</span><span class="p">,</span> <span class="nx">@width</span><span class="p">,</span> <span class="nx">@height</span><span class="p">)</span>
+
+    <span class="vi">@extremesLocation = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="s2">&quot;u_extremes&quot;</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">uniform2f</span><span class="p">(</span><span class="nx">@extremesLocation</span><span class="p">,</span> <span class="nx">@minimum</span><span class="p">,</span> <span class="nx">@maximum</span><span class="p">)</span>
+
+    <span class="nv">buffer = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">createBuffer</span><span class="p">()</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">bindBuffer</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">ARRAY_BUFFER</span><span class="p">,</span> <span class="nx">buffer</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">bufferData</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">ARRAY_BUFFER</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Float32Array</span><span class="p">([</span>
+         <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">STATIC_DRAW</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">enableVertexAttribArray</span><span class="p">(</span><span class="nx">positionLocation</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">vertexAttribPointer</span><span class="p">(</span><span class="nx">positionLocation</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">FLOAT</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nv">tex = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">createTexture</span><span class="p">()</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">bindTexture</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="nx">tex</span><span class="p">)</span>
+    
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">texImage2D</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">LUMINANCE</span><span class="p">,</span> <span class="nx">@width</span><span class="p">,</span> <span class="nx">@height</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">LUMINANCE</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">FLOAT</span><span class="p">,</span> <span class="nx">@imgset</span><span class="p">[</span><span class="mi">3</span><span class="p">].</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">data</span><span class="p">.</span><span class="nx">getFrameWebGL</span><span class="p">())</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">texParameteri</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_WRAP_S</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">CLAMP_TO_EDGE</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">texParameteri</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_WRAP_T</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">CLAMP_TO_EDGE</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">texParameteri</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_MIN_FILTER</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">NEAREST</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">texParameteri</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_2D</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">TEXTURE_MAG_FILTER</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">NEAREST</span><span class="p">)</span>
+
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">drawArrays</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TRIANGLES</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getError</span><span class="p">())</span>
+
+  <span class="nv">setupWebGL: </span><span class="nf">(opt_attribs) -&gt;</span>
+    
+    <span class="nv">showLink = </span><span class="nf">(str) -&gt;</span>
+      <span class="nv">container = </span><span class="nx">@canvas</span><span class="p">.</span><span class="nx">parentNode</span>
+      <span class="k">if</span> <span class="nx">container</span>
+        <span class="nv">container.innerHTML = </span><span class="nx">@makeFailHTML</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span>
+    
+    <span class="nx">unless</span> <span class="nb">window</span><span class="p">.</span><span class="nx">WebGLRenderingContext</span>
+      <span class="nx">showLink</span><span class="p">(</span><span class="nx">Visualize</span><span class="p">.</span><span class="nx">GET_A_WEBGL_BROWSER</span><span class="p">)</span>
+      <span class="k">return</span> <span class="kc">null</span>
+    
+    <span class="nv">context = </span><span class="nx">@create3DContext</span><span class="p">(</span><span class="nx">@canvas</span><span class="p">,</span> <span class="nx">opt_attribs</span><span class="p">)</span>
+    <span class="nx">showLink</span><span class="p">(</span><span class="nx">Visualize</span><span class="p">.</span><span class="nx">OTHER_PROBLEM</span><span class="p">)</span> <span class="nx">unless</span> <span class="nx">context</span>
+    
+    <span class="k">return</span> <span class="nx">context</span>
+  
+  <span class="nv">create3DContext: </span><span class="nf">(opt_attribs) -&gt;</span>
+    <span class="nv">names = </span><span class="p">[</span><span class="s2">&quot;webgl&quot;</span><span class="p">,</span> <span class="s2">&quot;experimental-webgl&quot;</span><span class="p">]</span>
+    <span class="nv">context = </span><span class="kc">null</span>
+    
+    <span class="k">for</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">index</span> <span class="k">in</span> <span class="nx">names</span>
+      <span class="k">try</span>
+        <span class="nv">context = </span><span class="nx">@canvas</span><span class="p">.</span><span class="nx">getContext</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">opt_attribs</span><span class="p">)</span>
+      <span class="k">catch</span> <span class="nx">e</span>
+      <span class="k">break</span> <span class="k">if</span> <span class="p">(</span><span class="nx">context</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="nx">context</span>
+
+  <span class="nv">makeFailHTML: </span><span class="nf">(msg) -&gt;</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;table style=&quot;background-color: #8CE; width: 100%; height: 100%;&quot;&gt;&lt;tr&gt;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;td align=&quot;center&quot;&gt;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;div style=&quot;display: table-cell; vertical-align: middle;&quot;&gt;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;div style=&quot;&quot;&gt;&#39;</span> <span class="o">+</span> <span class="nx">msg</span> <span class="o">+</span> <span class="s1">&#39;&lt;/div&gt;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;/div&gt;&#39;</span> <span class="o">+</span>
+      <span class="s1">&#39;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&#39;</span>
+
+  <span class="nv">createProgram: </span><span class="nf">(shaders, opt_attribs, opt_locations) -&gt;</span>
+    <span class="vi">@program = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">createProgram</span><span class="p">()</span>
+    
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">attachShader</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="nx">shader</span><span class="p">)</span> <span class="k">for</span> <span class="nx">shader</span><span class="p">,</span> <span class="nx">index</span> <span class="k">in</span> <span class="nx">shaders</span>
+    
+    <span class="k">if</span> <span class="nx">opt_attribs</span><span class="o">?</span>
+      <span class="k">for</span> <span class="nx">attribute</span><span class="p">,</span> <span class="nx">index</span> <span class="k">in</span> <span class="nx">opt_attribs</span>
+        <span class="nv">options = </span><span class="k">if</span> <span class="nx">opt_locations</span><span class="o">?</span> <span class="k">then</span> <span class="nx">opt_locations</span><span class="p">[</span><span class="nx">index</span><span class="p">]</span> <span class="k">else</span> <span class="nx">index</span>
+        <span class="nx">@gl</span><span class="p">.</span><span class="nx">bindAttribLocation</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">attribute</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">linkProgram</span><span class="p">(</span><span class="nx">@program</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Check the link status</p></div></div><div class="code"><div class="wrapper">    <span class="nv">linked = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getProgramParameter</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">LINK_STATUS</span><span class="p">)</span>
+    <span class="nx">unless</span> <span class="nx">linked</span>
+      <span class="k">throw</span> <span class="s2">&quot;Error in program linking: #{@gl.getProgramInfoLog(@program)}&quot;</span>
+      <span class="nx">@gl</span><span class="p">.</span><span class="nx">deleteProgram</span><span class="p">(</span><span class="nx">@program</span><span class="p">)</span>
+      <span class="k">return</span> <span class="kc">null</span>
+  
+  <span class="nv">loadShader: </span><span class="nf">(shaderSource, shaderType) -&gt;</span>
+    </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Create, load and compile the shader object</p></div></div><div class="code"><div class="wrapper">    <span class="nv">shader = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">createShader</span><span class="p">(</span><span class="nx">shaderType</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">shaderSource</span><span class="p">(</span><span class="nx">shader</span><span class="p">,</span> <span class="nx">shaderSource</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">compileShader</span><span class="p">(</span><span class="nx">shader</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Check the compile status</p></div></div><div class="code"><div class="wrapper">    <span class="nv">compiled = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getShaderParameter</span><span class="p">(</span><span class="nx">shader</span><span class="p">,</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">COMPILE_STATUS</span><span class="p">)</span>
+    
+    <span class="nx">unless</span> <span class="nx">compiled</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Something went wrong during compilation</p></div></div><div class="code"><div class="wrapper">      <span class="nv">lastError = </span><span class="nx">@gl</span><span class="p">.</span><span class="nx">getShaderInfoLog</span><span class="p">(</span><span class="nx">shader</span><span class="p">)</span>
+      <span class="k">throw</span> <span class="s2">&quot;Error compiling shader #{shader}: #{lastError}&quot;</span>
+      <span class="nx">@gl</span><span class="p">.</span><span class="nx">deleteShader</span><span class="p">(</span><span class="nx">shader</span><span class="p">)</span>
+      <span class="k">return</span> <span class="kc">null</span>
+    
+    <span class="k">return</span> <span class="nx">shader</span>
+
+  <span class="nv">setupUI: </span><span class="nf">(width, height) -&gt;</span>
+    <span class="nv">container = </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="nx">@el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">))</span>
+    <span class="nx">unless</span> <span class="nx">container</span> <span class="o">is</span> <span class="kc">null</span>
+      <span class="nx">container</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span><span class="nx">container</span><span class="p">.</span><span class="nx">children</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">while</span> <span class="nx">container</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    
+    <span class="nv">parent = </span><span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">)</span>
+    <span class="nx">parent</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="s2">&quot;fits-viewer&quot;</span><span class="p">)</span>
+    
+    <span class="vi">@canvas = </span><span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;canvas&quot;</span><span class="p">)</span>
+    <span class="nx">@canvas</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="nx">width</span><span class="p">)</span>
+    <span class="nx">@canvas</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s2">&quot;height&quot;</span><span class="p">,</span> <span class="nx">height</span><span class="p">)</span>
+    
+    <span class="nx">@el</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">parent</span><span class="p">)</span>
+    <span class="nx">parent</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">@canvas</span><span class="p">)</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Scale the image according to minimum and maximum arguments</p></div></div><div class="code"><div class="wrapper">  <span class="nv">scale: </span><span class="nf">(minimum, maximum) -&gt;</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">uniform2f</span><span class="p">(</span><span class="nx">@extremesLocation</span><span class="p">,</span> <span class="nx">minimum</span><span class="p">,</span> <span class="nx">maximum</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">drawArrays</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TRIANGLES</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Apply a stretch to the image.  Valid arguments include: linear, logarithm, sqrt, arcsinh, power, color</p></div></div><div class="code"><div class="wrapper">  <span class="nv">stretch: </span><span class="nf">(value) -&gt;</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">detachShader</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="nx">@fragmentShader</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">deleteShader</span><span class="p">(</span><span class="nx">@fragmentShader</span><span class="p">)</span>
+    
+    <span class="vi">@fragmentShader = </span><span class="nx">@loadShader</span><span class="p">(</span><span class="nx">Visualize</span><span class="p">.</span><span class="nx">fragmentShaders</span><span class="p">[</span><span class="nx">value</span><span class="p">],</span> <span class="nx">@gl</span><span class="p">.</span><span class="nx">FRAGMENT_SHADER</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">attachShader</span><span class="p">(</span><span class="nx">@program</span><span class="p">,</span> <span class="nx">@fragmentShader</span><span class="p">)</span>
+    <span class="nx">@gl</span><span class="p">.</span><span class="nx">drawArrays</span><span class="p">(</span><span class="nx">@gl</span><span class="p">.</span><span class="nx">TRIANGLES</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    
+
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Visualize</span></div></div></div></div></body></html>

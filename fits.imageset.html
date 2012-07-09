@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><title>fits.imageset</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="fits.imageset"><meta name="groc-project-path" content="src/fits.imageset.coffee"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/fits.imageset.coffee</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><p>Container class for multiple FITS images</p></div></div><div class="code"><div class="wrapper"><span class="k">class</span> <span class="nx">ImageSet</span>
+
+  <span class="nv">constructor: </span><span class="o">-&gt;</span>
+    <span class="vi">@images = </span><span class="p">{}</span>
+    <span class="vi">@keys = </span><span class="p">[]</span>
+    <span class="vi">@minimum = </span><span class="kc">undefined</span>
+    <span class="vi">@maximum = </span><span class="kc">undefined</span>
+    <span class="vi">@count = </span><span class="mi">0</span>
+  
+  <span class="nv">getExtremes: </span><span class="o">-&gt;</span>
+    <span class="nv">minimums = </span><span class="p">[]</span>
+    <span class="nv">maximums = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">image</span> <span class="k">of</span> <span class="nx">@images</span>
+      <span class="nv">data = </span><span class="nx">image</span><span class="p">.</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">data</span>
+      <span class="nx">data</span><span class="p">.</span><span class="nx">getFrame</span><span class="p">()</span>
+      <span class="nv">extremes = </span><span class="nx">data</span><span class="p">.</span><span class="nx">getExtremes</span><span class="p">()</span>
+      <span class="nx">minimums</span><span class="p">.</span><span class="nx">push</span> <span class="nx">extremes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="nx">maximums</span><span class="p">.</span><span class="nx">push</span> <span class="nx">extremes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="vi">@minimum = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">.</span><span class="nx">apply</span> <span class="nb">Math</span><span class="p">,</span> <span class="nx">minimums</span>
+    <span class="vi">@maximum = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">.</span><span class="nx">apply</span> <span class="nb">Math</span><span class="p">,</span> <span class="nx">maximums</span>
+  
+  <span class="nv">addImage: </span><span class="nf">(image) -&gt;</span>
+    <span class="nv">filter = </span><span class="nx">image</span><span class="p">.</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">header</span><span class="p">[</span><span class="s2">&quot;FILTER&quot;</span><span class="p">]</span> <span class="o">or</span> <span class="nx">@count</span>
+    <span class="nx">@keys</span><span class="p">.</span><span class="nx">push</span> <span class="nx">filter</span>
+    <span class="nx">@images</span><span class="p">[</span><span class="nx">filter</span><span class="p">]</span> <span class="o">=</span> <span class="nx">image</span>
+    <span class="nv">index = </span><span class="nx">@count</span>
+    <span class="err">@</span><span class="p">.</span><span class="nx">__defineGetter__</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="k">return</span> <span class="nx">@images</span><span class="p">[</span><span class="nx">@keys</span><span class="p">[</span><span class="nx">index</span><span class="p">]])</span>
+    <span class="nx">@count</span> <span class="o">+=</span> <span class="mi">1</span>
+  
+  <span class="nv">getWidth: </span><span class="o">-&gt;</span>
+    <span class="nv">key = </span><span class="nx">@keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">null</span> <span class="nx">unless</span> <span class="nx">@images</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span><span class="o">?</span>
+    <span class="k">return</span> <span class="nx">@images</span><span class="p">[</span><span class="nx">key</span><span class="p">].</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">header</span><span class="p">[</span><span class="s2">&quot;NAXIS1&quot;</span><span class="p">]</span>
+
+  <span class="nv">getHeight: </span><span class="o">-&gt;</span>
+    <span class="nv">key = </span><span class="nx">@keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">null</span> <span class="nx">unless</span> <span class="nx">@images</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span><span class="o">?</span>
+    <span class="k">return</span> <span class="nx">@images</span><span class="p">[</span><span class="nx">key</span><span class="p">].</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">header</span><span class="p">[</span><span class="s2">&quot;NAXIS2&quot;</span><span class="p">]</span>
+  
+  <span class="nv">getCount: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="nx">@count</span>
+  
+  <span class="nv">getData: </span><span class="nf">(filter) -&gt;</span> <span class="k">return</span> <span class="err">@</span><span class="p">[</span><span class="nx">filter</span><span class="p">].</span><span class="nx">getHDU</span><span class="p">().</span><span class="nx">data</span><span class="p">.</span><span class="nx">data</span>
+  
+  <span class="nv">seek: </span><span class="nf">(frame = 0) -&gt;</span>
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">image</span> <span class="k">of</span> <span class="nx">@images</span>
+      <span class="nx">image</span><span class="p">.</span><span class="nx">getDataUnit</span><span class="p">().</span><span class="nx">seek</span><span class="p">(</span><span class="nx">frame</span><span class="p">)</span>
+
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">ImageSet</span></div></div></div></div></body></html>
