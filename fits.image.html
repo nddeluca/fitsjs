@@ -15,7 +15,7 @@
 
     <span class="vi">@length = </span><span class="nx">@naxis</span><span class="p">.</span><span class="nx">reduce</span><span class="p">(</span> <span class="nf">(a, b) -&gt;</span> <span class="nx">a</span> <span class="o">*</span> <span class="nx">b</span><span class="p">)</span> <span class="o">*</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">bitpix</span><span class="p">)</span> <span class="o">/</span> <span class="mi">8</span>
     <span class="vi">@data   = </span><span class="kc">undefined</span>
-    <span class="vi">@frame = </span><span class="o">-</span><span class="mi">1</span>    <span class="c1"># Only relevant for data cubes</span>
+    <span class="vi">@frame  = </span><span class="o">-</span><span class="mi">1</span>    <span class="c1"># Only relevant for data cubes</span>
     </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Define the function to interpret the image data</p></div></div><div class="code"><div class="wrapper">    <span class="k">switch</span> <span class="nx">bitpix</span>
       <span class="k">when</span> <span class="mi">8</span>
         <span class="vi">@arrayType  = </span><span class="nx">Uint8Array</span>
@@ -101,5 +101,6 @@ this defaults to the first and only frame.  Indexing of the frame argument begin
     <span class="k">else</span>
       <span class="vi">@rowsRead = </span><span class="nx">@naxis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nx">frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
       <span class="vi">@frame    = </span><span class="nx">@naxis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nx">@rowsRead</span> <span class="o">-</span> <span class="mi">1</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Checks if the image is a data cube</p></div></div><div class="code"><div class="wrapper">  <span class="nv">isDataCube: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="k">if</span> <span class="nx">@naxis</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">then</span> <span class="kc">true</span> <span class="k">else</span> <span class="kc">false</span>
     
 <span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Image</span></div></div></div></div></body></html>

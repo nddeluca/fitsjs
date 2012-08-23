@@ -1,17 +1,8 @@
 <!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">README.md</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="fitsjs">fitsjs</h1>
 
-<p>A JavaScript library for reading the astronomical file format – FITS.  This library depends on <a href="https://github.com/vjeux/jDataView">jDataView</a>.  Other dependencies installed by Node are only for the testing environment and generating documentation.</p>
+<p>A standalone JavaScript library for reading the astronomical file format – FITS.  This library is built for modern browsers supporting the DataView object.  These include at least Chrome 9, Firefox 15, and Safari 6.</p>
 
-<p>To install the dependencies and generate documentation:</p>
-
-<pre><code># Install the dependencies.
-npm install .
-
-# Generate documentation
-groc
-</code></pre>
-
-<p>To use the library copy public/fits.js to your project and include it using a script tag.  After including the library, the FITS object is exposed by calling require.</p>
+<p>To use the library copy lib/fits.js to your project and include it using a script tag.  After including the library, the FITS object is exposed by calling require.</p>
 
 <pre><code>&lt;script src="fits.js" type="text/javascript" charset="utf-8"&gt;
 &lt;/script&gt;
@@ -51,7 +42,7 @@ may be passed to point to a specific HDU.</p>
 <pre><code>fits.getDataUnit()
 </code></pre>
 
-<p>Returns the data object associated with the first HDU containing a data unit.  This method does not read from the array buffer
+<p>Returns the data object associated with the first HDU containing a data unit.  This method does not read from the array buffer.
 An optional argument may be passed to point to a specific HDU.</p>
 
 <pre><code>fits.getData()

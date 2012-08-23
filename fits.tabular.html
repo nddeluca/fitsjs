@@ -39,7 +39,8 @@
     <span class="vi">@length       = @tableLength = </span><span class="nx">@rowByteSize</span> <span class="o">*</span> <span class="nx">@rows</span>
     <span class="vi">@rowsRead     = </span><span class="mi">0</span>
     
-    <span class="vi">@accessors = </span><span class="p">[]</span>
+    <span class="vi">@columns      = </span><span class="nx">@getColumnNames</span><span class="p">(</span><span class="nx">header</span><span class="p">)</span>
+    <span class="vi">@accessors    = </span><span class="p">[]</span>
     
   <span class="nv">getRow: </span><span class="o">-&gt;</span>
     <span class="vi">@current = </span><span class="nx">@begin</span> <span class="o">+</span> <span class="nx">@rowsRead</span> <span class="o">*</span> <span class="nx">@rowByteSize</span>
@@ -48,5 +49,13 @@
     <span class="nx">row</span><span class="p">.</span><span class="nx">push</span> <span class="nx">accessor</span><span class="p">()</span> <span class="k">for</span> <span class="nx">accessor</span> <span class="k">in</span> <span class="nx">@accessors</span>
     <span class="nx">@rowsRead</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="nx">row</span>
+
+  <span class="nv">getColumnNames: </span><span class="nf">(header) -&gt;</span>
+    <span class="nv">columnNames = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">..</span><span class="nx">@cols</span><span class="p">]</span>
+      <span class="nv">key = </span><span class="s2">&quot;TTYPE#{i}&quot;</span>
+      <span class="k">return</span> <span class="kc">null</span> <span class="nx">unless</span> <span class="nx">header</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
+      <span class="nx">columnNames</span><span class="p">.</span><span class="nx">push</span> <span class="nx">header</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nx">columnNames</span>
 
 <span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Tabular</span></div></div></div></div></body></html>
