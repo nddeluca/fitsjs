@@ -1,13 +1,16 @@
 <!DOCTYPE html><html lang="en"><head><title>fits.header</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="fits.header"><meta name="groc-project-path" content="src/fits.header.coffee"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/fits.header.coffee</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="nv">Module      = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./fits.module&#39;</span><span class="p">)</span>
 <span class="nv">VerifyCards = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./fits.header.verify&#39;</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Header parses and stores the FITS header.  Verification is done for reserved
 keywords (e.g. SIMPLE, BITPIX, etc).</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>TODO: Storage of COMMENT and HISTORY fields needs improvement</p></div></div><div class="code"><div class="wrapper"><span class="k">class</span> <span class="nx">Header</span> <span class="k">extends</span> <span class="nx">Module</span>
-  <span class="vi">@keywordPattern   = </span><span class="sr">/([\w_-]+)\s*=?\s*(.*)/</span>
+
+  <span class="vi">@keywordPattern   = </span><span class="sr">/([A-Z0-9_-]+)\s*=\s*(.*)/</span>
   <span class="vi">@nonStringPattern = </span><span class="sr">/([^\/]*)\s*\/*(.*)/</span>
   <span class="vi">@stringPattern    = </span><span class="sr">/&#39;(.*)&#39;\s*\/*(.*)/</span>
   <span class="vi">@arrayPattern     = </span><span class="sr">/([A-Za-z]+)(\d+)/</span>
   <span class="nx">@include</span> <span class="nx">VerifyCards</span>
   
   <span class="nv">constructor: </span><span class="o">-&gt;</span>
+    <span class="vi">@primary    = </span><span class="kc">false</span>
+    <span class="vi">@extension  = </span><span class="kc">false</span>
     </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add verification methods to instance</p></div></div><div class="code"><div class="wrapper">    <span class="vi">@verifyCard = </span><span class="p">{}</span>
     <span class="nx">@verifyCard</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@proxy</span><span class="p">(</span><span class="nx">method</span><span class="p">)</span> <span class="k">for</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">method</span> <span class="k">of</span> <span class="nx">@Functions</span>
     </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>e.g. [index, value, comment]</p></div></div><div class="code"><div class="wrapper">    <span class="vi">@cards      = </span><span class="p">{}</span>
@@ -54,13 +57,25 @@ keywords (e.g. SIMPLE, BITPIX, etc).</p></div></div></div><div class="segment"><
     
     <span class="k">if</span> <span class="nx">@verifyCard</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">keyToVerify</span><span class="p">)</span>
       <span class="nv">value = </span><span class="nx">@verifyCard</span><span class="p">[</span><span class="nx">keyToVerify</span><span class="p">](</span><span class="nx">value</span><span class="p">,</span> <span class="nx">array</span><span class="p">,</span> <span class="nx">index</span><span class="p">)</span>
-
+  
     <span class="k">switch</span> <span class="nx">key</span>
       <span class="k">when</span> <span class="s2">&quot;COMMENT&quot;</span> <span class="k">then</span> <span class="nx">@setComment</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
       <span class="k">when</span> <span class="s2">&quot;HISTORY&quot;</span> <span class="k">then</span> <span class="nx">@setHistory</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
       <span class="k">else</span>
         <span class="nx">@set</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">,</span> <span class="nx">comment</span><span class="p">)</span>
         <span class="err">@</span><span class="p">.</span><span class="nx">__defineGetter__</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="k">return</span> <span class="nx">@cards</span><span class="p">[</span><span class="nx">key</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tells if a data unit follows based on NAXIS</p></div></div><div class="code"><div class="wrapper">  <span class="nv">hasDataUnit: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="k">if</span> <span class="err">@</span><span class="p">[</span><span class="s2">&quot;NAXIS&quot;</span><span class="p">]</span> <span class="o">is</span> <span class="mi">0</span> <span class="k">then</span> <span class="kc">false</span> <span class="k">else</span> <span class="kc">true</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Initialize a header, interpretting only mandatory and reserved keywords
+HACK: For now interpretting only the first 180 lines ...</p></div></div><div class="code"><div class="wrapper">  <span class="nv">init: </span><span class="p">(</span><span class="nx">block</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nv">lineWidth = </span><span class="mi">80</span>
+    
+    <span class="nv">numLines = </span><span class="nx">block</span><span class="p">.</span><span class="nx">length</span> <span class="err">/ lineWidth</span>
+    <span class="nv">maxNumLines = </span><span class="mi">600</span> <span class="c1"># Arbitrary number</span>
+    <span class="nv">numLines = </span><span class="k">if</span> <span class="nx">numLines</span> <span class="o">&lt;</span> <span class="nx">maxNumLines</span> <span class="k">then</span> <span class="nx">numLines</span> <span class="k">else</span> <span class="nx">maxNumLines</span>
+    
+    <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">..</span><span class="nx">numLines</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+      <span class="nv">line = </span><span class="nx">block</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="nx">i</span> <span class="o">*</span> <span class="nx">lineWidth</span><span class="p">,</span> <span class="p">(</span><span class="nx">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">lineWidth</span><span class="p">)</span>
+      <span class="nx">@readCard</span><span class="p">(</span><span class="nx">line</span><span class="p">)</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tells if a data unit follows based on NAXIS</p></div></div><div class="code"><div class="wrapper">  <span class="nv">hasDataUnit: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="k">if</span> <span class="err">@</span><span class="p">[</span><span class="s2">&quot;NAXIS&quot;</span><span class="p">]</span> <span class="o">is</span> <span class="mi">0</span> <span class="k">then</span> <span class="kc">false</span> <span class="k">else</span> <span class="kc">true</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Check type of header</p></div></div><div class="code"><div class="wrapper">  <span class="nv">isPrimary: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="nx">@primary</span>
+  <span class="nv">isExtension: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="nx">@extension</span>
 
 <span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Header</span></div></div></div></div></body></html>

@@ -392,6 +392,22 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "singleLineComment": ["#"],
           "name": "CoffeeScript"
         },
+        "sourcePath": "/Users/akapadia/Projects/fitsjs/src/fits.image.utils.coffee",
+        "projectPath": "src/fits.image.utils.coffee",
+        "targetPath": "fits.image.utils",
+        "title": "fits.image.utils"
+      },
+      "depth": 1,
+      "outline": []
+    }, {
+      "type": "file",
+      "data": {
+        "language": {
+          "nameMatchers": [".coffee"],
+          "pygmentsLexer": "coffee-script",
+          "singleLineComment": ["#"],
+          "name": "CoffeeScript"
+        },
         "sourcePath": "/Users/akapadia/Projects/fitsjs/src/fits.module.coffee",
         "projectPath": "src/fits.module.coffee",
         "targetPath": "fits.module",
