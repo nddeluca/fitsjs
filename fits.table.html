@@ -19,7 +19,8 @@
           <span class="k">return</span> <span class="nx">Table</span><span class="p">.</span><span class="nx">dataAccessors</span><span class="p">[</span><span class="nx">dataType</span><span class="p">](</span><span class="nx">value</span><span class="p">)</span>
         <span class="nx">@accessors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">accessor</span><span class="p">)</span>
 
-  <span class="nv">getRow: </span><span class="o">=&gt;</span>
+  <span class="nv">getRow: </span><span class="p">(</span><span class="nv">row = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="vi">@rowsRead = </span><span class="nx">row</span> <span class="k">if</span> <span class="nx">row</span><span class="o">?</span>
     <span class="vi">@current = </span><span class="nx">@begin</span> <span class="o">+</span> <span class="nx">@rowsRead</span> <span class="o">*</span> <span class="nx">@rowByteSize</span>
     <span class="nx">@view</span><span class="p">.</span><span class="nx">seek</span><span class="p">(</span><span class="nx">@current</span><span class="p">)</span>
     <span class="nv">row = </span><span class="s2">&quot;&quot;</span>
