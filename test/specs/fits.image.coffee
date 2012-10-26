@@ -7,28 +7,7 @@ describe "FITS Image", ->
   beforeEach ->
     @addMatchers {
       toBeNaN: (expected) -> return isNaN(@actual) == isNaN(expected)
-    }
-
-  # it 'can compare while versus for', ->
-  #   fits = null
-  #   
-  #   xhr = new XMLHttpRequest()
-  #   xhr.open('GET', 'data/m101.fits')
-  #   xhr.responseType = 'arraybuffer'
-  #   xhr.onload = -> fits = new FITS.File(xhr.response)
-  #   xhr.send()
-  #   
-  #   waitsFor -> return fits?
-  #   
-  #   runs ->
-  #     image = fits.getDataUnit()
-  #     start = new Date()
-  #     number = 10
-  #     for i in [1..number]
-  #       image.getFrame(0)
-  #     end = new Date()
-  #     console.log "time = #{(end - start) / number}"
-        
+    }        
 
   it 'can read a FITS image', ->
     fits = null
@@ -90,35 +69,35 @@ describe "FITS Image", ->
       expect(image.getPixel(42, 68)).toBeCloseTo(-0.0534229, precision)
       expect(image.getPixel(92, 24)).toBeCloseTo(0.153861, precision)
       
-      # Second Frame
-      image.getFrame()
-      
-      # Check the values of the corner pixels ...
-      expect(image.getPixel(0, 0)).toBeNaN()
-      expect(image.getPixel(106, 0)).toBeNaN()
-      expect(image.getPixel(106, 106)).toBeNaN()
-      expect(image.getPixel(0, 106)).toBeNaN()
-      
-      # ... and a few other random pixels
-      expect(image.getPixel(54, 36)).toBeCloseTo(0.0329713, precision)
-      expect(image.getPixel(100, 7)).toBeCloseTo(0.0763166, precision)
-      expect(image.getPixel(42, 68)).toBeCloseTo(-0.103573, precision)
-      expect(image.getPixel(92, 24)).toBeCloseTo(0.0360738, precision)
-      
-      # ... Last Frame
-      image.getFrame(601)
-          
-      # Check the values of the corner pixels ...
-      expect(image.getPixel(0, 0)).toBeNaN()
-      expect(image.getPixel(106, 0)).toBeNaN()
-      expect(image.getPixel(106, 106)).toBeNaN()
-      expect(image.getPixel(0, 106)).toBeNaN()
-          
-      # ... and a few other random pixels
-      expect(image.getPixel(54, 36)).toBeCloseTo(-0.105564, precision)
-      expect(image.getPixel(100, 7)).toBeCloseTo(0.202304, precision)
-      expect(image.getPixel(42, 68)).toBeCloseTo(0.221437, precision)
-      expect(image.getPixel(92, 24)).toBeCloseTo(-0.163851, precision)
+      # # Second Frame
+      # image.getFrame()
+      # 
+      # # Check the values of the corner pixels ...
+      # expect(image.getPixel(0, 0)).toBeNaN()
+      # expect(image.getPixel(106, 0)).toBeNaN()
+      # expect(image.getPixel(106, 106)).toBeNaN()
+      # expect(image.getPixel(0, 106)).toBeNaN()
+      # 
+      # # ... and a few other random pixels
+      # expect(image.getPixel(54, 36)).toBeCloseTo(0.0329713, precision)
+      # expect(image.getPixel(100, 7)).toBeCloseTo(0.0763166, precision)
+      # expect(image.getPixel(42, 68)).toBeCloseTo(-0.103573, precision)
+      # expect(image.getPixel(92, 24)).toBeCloseTo(0.0360738, precision)
+      # 
+      # # ... Last Frame
+      # image.getFrame(601)
+      #     
+      # # Check the values of the corner pixels ...
+      # expect(image.getPixel(0, 0)).toBeNaN()
+      # expect(image.getPixel(106, 0)).toBeNaN()
+      # expect(image.getPixel(106, 106)).toBeNaN()
+      # expect(image.getPixel(0, 106)).toBeNaN()
+      #     
+      # # ... and a few other random pixels
+      # expect(image.getPixel(54, 36)).toBeCloseTo(-0.105564, precision)
+      # expect(image.getPixel(100, 7)).toBeCloseTo(0.202304, precision)
+      # expect(image.getPixel(42, 68)).toBeCloseTo(0.221437, precision)
+      # expect(image.getPixel(92, 24)).toBeCloseTo(-0.163851, precision)
 
   it 'can get extremes, seek, then get data without blowing up', ->
     fits = null

@@ -67,25 +67,7 @@
         expect(image.getPixel(54, 36)).toBeCloseTo(0.0340614, precision);
         expect(image.getPixel(100, 7)).toBeCloseTo(-0.0275259, precision);
         expect(image.getPixel(42, 68)).toBeCloseTo(-0.0534229, precision);
-        expect(image.getPixel(92, 24)).toBeCloseTo(0.153861, precision);
-        image.getFrame();
-        expect(image.getPixel(0, 0)).toBeNaN();
-        expect(image.getPixel(106, 0)).toBeNaN();
-        expect(image.getPixel(106, 106)).toBeNaN();
-        expect(image.getPixel(0, 106)).toBeNaN();
-        expect(image.getPixel(54, 36)).toBeCloseTo(0.0329713, precision);
-        expect(image.getPixel(100, 7)).toBeCloseTo(0.0763166, precision);
-        expect(image.getPixel(42, 68)).toBeCloseTo(-0.103573, precision);
-        expect(image.getPixel(92, 24)).toBeCloseTo(0.0360738, precision);
-        image.getFrame(601);
-        expect(image.getPixel(0, 0)).toBeNaN();
-        expect(image.getPixel(106, 0)).toBeNaN();
-        expect(image.getPixel(106, 106)).toBeNaN();
-        expect(image.getPixel(0, 106)).toBeNaN();
-        expect(image.getPixel(54, 36)).toBeCloseTo(-0.105564, precision);
-        expect(image.getPixel(100, 7)).toBeCloseTo(0.202304, precision);
-        expect(image.getPixel(42, 68)).toBeCloseTo(0.221437, precision);
-        return expect(image.getPixel(92, 24)).toBeCloseTo(-0.163851, precision);
+        return expect(image.getPixel(92, 24)).toBeCloseTo(0.153861, precision);
       });
     });
     return it('can get extremes, seek, then get data without blowing up', function() {
