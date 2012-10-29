@@ -70,7 +70,7 @@
         return expect(image.getPixel(92, 24)).toBeCloseTo(0.153861, precision);
       });
     });
-    return it('can get extremes, seek, then get data without blowing up', function() {
+    it('can get extremes, seek, then get data without blowing up', function() {
       var fits, xhr;
       fits = null;
       xhr = new XMLHttpRequest();
@@ -101,6 +101,40 @@
         expect(image.getPixel(350, 782)).toEqual(4351);
         expect(image.getPixel(108, 345)).toEqual(4380);
         return expect(image.getPixel(720, 500)).toEqual(5527);
+      });
+    });
+    return it('can read a file with bitpix -32', function() {
+      var fits, xhr;
+      fits = null;
+      xhr = new XMLHttpRequest();
+      xhr.open('GET', 'data/Deep_32.fits');
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function() {
+        return fits = new FITS.File(xhr.response);
+      };
+      xhr.send();
+      waitsFor(function() {
+        return fits != null;
+      });
+      return runs(function() {
+        var ab, arr, buf, dv, i, image, pixel, strRep, view, _i, _ref, _results;
+        image = fits.getDataUnit();
+        image.getFrame();
+        pixel = image.getPixel(0, 0);
+        console.log(pixel);
+        expect(pixel).toEqual(538);
+        ab = new ArrayBuffer(4);
+        dv = new DataView(ab);
+        dv.setFloat32(0, 538.123, true);
+        arr = new Float32Array(ab);
+        strRep = String.fromCharCode.apply(null, arr);
+        buf = new ArrayBuffer(8);
+        view = new Float32Array(buf);
+        _results = [];
+        for (i = _i = 0, _ref = strRep.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+          _results.push(console.log(strRep.charCodeAt(i)));
+        }
+        return _results;
       });
     });
   });

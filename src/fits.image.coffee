@@ -22,6 +22,8 @@ class Image extends Data
     @length = @naxis.reduce( (a, b) -> a * b) * Math.abs(bitpix) / 8
     @data = undefined
     @frame = 0  # Needed for data cubes
+    console.log "begin = ", @begin
+    console.log "end = ", @begin + @length
     
     # Define the function to interpret the image data
     switch bitpix
@@ -62,29 +64,17 @@ class Image extends Data
     
     @rowsRead += 1
     @totalRowsRead += 1
-  
-  # Read the entire frame of the image.  If the image is a data cube, it reads
-  # a slice of the data.
-  getFrame: (@frame = @frame) ->
-    @initArray(@arrayType) unless @data?
-    
-    @totalRowsRead = @width * @frame
-    @rowsRead = 0
-    
-    height = @height
-    while height--
-      @getRow()
-    
-    @frame += 1
-    return @data
 
   getFrame: (@frame = @frame) =>
     numPixels = @width * @height
     buffer = @view.buffer.slice(@begin, @begin + @length)
+    
     @data = new @arrayType(buffer)
-    for index in [0..numPixels-1]
-      value = @data[index]
-      @data[index] = (((value & 0xFF) << 8) | ((value >> 8) & 0xFF))
+    
+    # for index in [0..numPixels-1]
+    #   value = @data[index]
+    #   @data[index] = ((value >> 24) & 0xFF) | ((value << 8) & 0xFF0000) | ((value >> 8) & 0xFF00) | ((value << 24) & 0xFF000000)
+      # @data[index] = (((value & 0xFF) << 8) | ((value >> 8) & 0xFF))
       
     @frame += 1
     @rowsRead = @totalRowsRead = @frame * @width

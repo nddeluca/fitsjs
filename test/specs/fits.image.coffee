@@ -138,6 +138,40 @@ describe "FITS Image", ->
       expect(image.getPixel(108, 345)).toEqual(4380)
       expect(image.getPixel(720, 500)).toEqual(5527)
 
+  it 'can read a file with bitpix -32', ->
+    fits = null
+    
+    xhr = new XMLHttpRequest()
+    xhr.open('GET', 'data/Deep_32.fits')
+    xhr.responseType = 'arraybuffer'
+    xhr.onload = -> fits = new FITS.File(xhr.response)
+    xhr.send()
+    
+    waitsFor -> return fits?
+    
+    runs ->
+      image = fits.getDataUnit()
+      image.getFrame()
+      pixel = image.getPixel(0, 0)
+      console.log pixel
+      expect(pixel).toEqual(538)
+      
+      # Prepare a buffer
+      ab = new ArrayBuffer(4)
+      dv = new DataView(ab)
+      dv.setFloat32(0, 538.123, true)
+      
+      arr = new Float32Array(ab)
+      strRep = String.fromCharCode.apply(null, arr)
+      
+      # Convert back to Uint32
+      buf = new ArrayBuffer(4)
+      view = new Float32Array(buf)
+      
+      for i in [0..strRep.length - 1]
+        console.log strRep.charCodeAt(i)
+      
+
   # it 'can read a file with an IMAGE extension', ->
   #   fits = null
   # 
