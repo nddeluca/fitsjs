@@ -8,7 +8,7 @@ class Image extends Data
   constructor: (view, header) ->
     super
     naxis   = header['NAXIS']
-    bitpix  = header['BITPIX']
+    @bitpix  = header['BITPIX']
     
     @naxis = []
     @naxis.push header["NAXIS#{i}"] for i in [1..naxis]
@@ -16,43 +16,40 @@ class Image extends Data
     @width  = header['NAXIS1']
     @height = header['NAXIS2'] or 1
     
-    @rowByteSize = @width * Math.abs(bitpix) / 8
+    
+    bytesPerNumber = Math.abs(@bitpix) / 8
+    @rowByteSize = @width * bytesPerNumber
     @totalRowsRead = 0
     
-    @length = @naxis.reduce( (a, b) -> a * b) * Math.abs(bitpix) / 8
+    @length = @naxis.reduce( (a, b) -> a * b) * bytesPerNumber
     @data = undefined
     @frame = 0  # Needed for data cubes
-    console.log "begin = ", @begin
-    console.log "end = ", @begin + @length
     
     # Define the function to interpret the image data
-    switch bitpix
+    switch @bitpix
       when 8
         @arrayType  = Uint8Array
         @accessor   = => return @view.getUint8()
+        @swapEndian = (value) => return value
       when 16
         @arrayType  = Uint16Array
         @accessor   = => return @view.getInt16()
+        @swapEndian = (value) => return (value << 8) | (value >> 8)
       when 32
         @arrayType  = Uint32Array
-      when 64
-        @arrayType  = Uint32Array
-        @accessor   = =>
-          console.warn "Something funky happens here when dealing with 64 bit integers.  Be wary!!!"
-          highByte  = Math.abs @view.getUint32()
-          lowByte   = Math.abs @view.getUint32()
-          mod       = highByte % 10
-          factor    = if mod then -1 else 1
-          highByte  -= mod
-          value     = factor * ((highByte << 32) | lowByte)
-          return value
+        @accessor   = => return @view.getInt32()
+        @swapEndian = (value) =>
+          value = ((value << 8) & 0xFF00FF00 ) | ((value >> 8) & 0xFF00FF )
+          return (value << 16) | (value >> 16)
       when -32
         @arrayType  = Float32Array
+        @accessor   = => return @view.getFloat32()
       when -64
         @arrayType  = Float64Array
+        @accessor   = => return @view.getFloat64()
       else
         throw "Invalid BITPIX"
-
+  
   # Read a row of pixels from the array buffer.  The method initArray
   # must be called before requesting any rows.
   getRow: ->
@@ -69,13 +66,17 @@ class Image extends Data
     numPixels = @width * @height
     buffer = @view.buffer.slice(@begin, @begin + @length)
     
-    @data = new @arrayType(buffer)
+    if @bitpix < 0
+      @initArray(@arrayType) unless @data?
+      height = @height
+      while height--
+        @getRow()
+    else
+      @data = new @arrayType(buffer)
+      for index in [0..numPixels-1]
+        value = @data[index]
+        @data[index] = @swapEndian(value)
     
-    # for index in [0..numPixels-1]
-    #   value = @data[index]
-    #   @data[index] = ((value >> 24) & 0xFF) | ((value << 8) & 0xFF0000) | ((value >> 8) & 0xFF00) | ((value << 24) & 0xFF000000)
-      # @data[index] = (((value & 0xFF) << 8) | ((value >> 8) & 0xFF))
-      
     @frame += 1
     @rowsRead = @totalRowsRead = @frame * @width
     return @data

@@ -60,6 +60,7 @@
         image = fits.getDataUnit();
         expect(image.isDataCube()).toBeTruthy();
         image.getFrame();
+        console.log(image.data);
         expect(image.getPixel(0, 0)).toBeNaN();
         expect(image.getPixel(106, 0)).toBeNaN();
         expect(image.getPixel(106, 106)).toBeNaN();
@@ -128,7 +129,7 @@
         dv.setFloat32(0, 538.123, true);
         arr = new Float32Array(ab);
         strRep = String.fromCharCode.apply(null, arr);
-        buf = new ArrayBuffer(8);
+        buf = new ArrayBuffer(4);
         view = new Float32Array(buf);
         _results = [];
         for (i = _i = 0, _ref = strRep.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
