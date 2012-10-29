@@ -41,12 +41,11 @@
         return expect(image.getPixel(720, 500)).toEqual(5527);
       });
     });
-    it('can read a FITS data cube', function() {
-      var fits, precision, xhr;
-      precision = 6;
+    it('can read image with BITPIX = 8', function() {
+      var fits, xhr;
       fits = null;
       xhr = new XMLHttpRequest();
-      xhr.open('GET', 'data/L1448_13CO.fits');
+      xhr.open('GET', 'data/image-uint8.fits');
       xhr.responseType = 'arraybuffer';
       xhr.onload = function() {
         return fits = new FITS.File(xhr.response);
@@ -58,24 +57,23 @@
       return runs(function() {
         var image;
         image = fits.getDataUnit();
-        expect(image.isDataCube()).toBeTruthy();
         image.getFrame();
-        console.log(image.data);
-        expect(image.getPixel(0, 0)).toBeNaN();
-        expect(image.getPixel(106, 0)).toBeNaN();
-        expect(image.getPixel(106, 106)).toBeNaN();
-        expect(image.getPixel(0, 106)).toBeNaN();
-        expect(image.getPixel(54, 36)).toBeCloseTo(0.0340614, precision);
-        expect(image.getPixel(100, 7)).toBeCloseTo(-0.0275259, precision);
-        expect(image.getPixel(42, 68)).toBeCloseTo(-0.0534229, precision);
-        return expect(image.getPixel(92, 24)).toBeCloseTo(0.153861, precision);
+        expect(image.getPixel(0, 0)).toEqual(1);
+        expect(image.getPixel(50, 0)).toEqual(113);
+        expect(image.getPixel(99, 0)).toEqual(63);
+        expect(image.getPixel(0, 50)).toEqual(219);
+        expect(image.getPixel(50, 50)).toEqual(246);
+        expect(image.getPixel(99, 50)).toEqual(53);
+        expect(image.getPixel(0, 99)).toEqual(187);
+        expect(image.getPixel(50, 99)).toEqual(172);
+        return expect(image.getPixel(99, 99)).toEqual(181);
       });
     });
-    it('can get extremes, seek, then get data without blowing up', function() {
+    it('can read image with BITPIX = 16', function() {
       var fits, xhr;
       fits = null;
       xhr = new XMLHttpRequest();
-      xhr.open('GET', 'data/m101.fits');
+      xhr.open('GET', 'data/image-int16.fits');
       xhr.responseType = 'arraybuffer';
       xhr.onload = function() {
         return fits = new FITS.File(xhr.response);
@@ -87,28 +85,23 @@
       return runs(function() {
         var image;
         image = fits.getDataUnit();
-        expect(image.frame).toEqual(0);
-        image.seek();
-        expect(image.frame).toEqual(0);
         image.getFrame();
-        image.getExtremes();
-        expect(image.min).toEqual(2396);
-        expect(image.max).toEqual(26203);
-        expect(image.getPixel(0, 0)).toEqual(3852);
-        expect(image.getPixel(890, 0)).toEqual(4223);
-        expect(image.getPixel(890, 892)).toEqual(4015);
-        expect(image.getPixel(0, 892)).toEqual(3898);
-        expect(image.getPixel(405, 600)).toEqual(9128);
-        expect(image.getPixel(350, 782)).toEqual(4351);
-        expect(image.getPixel(108, 345)).toEqual(4380);
-        return expect(image.getPixel(720, 500)).toEqual(5527);
+        expect(image.getPixel(0, 0)).toEqual(322);
+        expect(image.getPixel(50, 0)).toEqual(29219);
+        expect(image.getPixel(99, 0)).toEqual(16339);
+        expect(image.getPixel(0, 50)).toEqual(-9192);
+        expect(image.getPixel(50, 50)).toEqual(-2214);
+        expect(image.getPixel(99, 50)).toEqual(13670);
+        expect(image.getPixel(0, 99)).toEqual(-17403);
+        expect(image.getPixel(50, 99)).toEqual(-21201);
+        return expect(image.getPixel(99, 99)).toEqual(-19013);
       });
     });
-    return it('can read a file with bitpix -32', function() {
+    it('can read image with BITPIX = 32', function() {
       var fits, xhr;
       fits = null;
       xhr = new XMLHttpRequest();
-      xhr.open('GET', 'data/Deep_32.fits');
+      xhr.open('GET', 'data/image-uint8.fits');
       xhr.responseType = 'arraybuffer';
       xhr.onload = function() {
         return fits = new FITS.File(xhr.response);
@@ -118,24 +111,30 @@
         return fits != null;
       });
       return runs(function() {
-        var ab, arr, buf, dv, i, image, pixel, strRep, view, _i, _ref, _results;
+        var image;
         image = fits.getDataUnit();
         image.getFrame();
-        pixel = image.getPixel(0, 0);
-        console.log(pixel);
-        expect(pixel).toEqual(538);
-        ab = new ArrayBuffer(4);
-        dv = new DataView(ab);
-        dv.setFloat32(0, 538.123, true);
-        arr = new Float32Array(ab);
-        strRep = String.fromCharCode.apply(null, arr);
-        buf = new ArrayBuffer(4);
-        view = new Float32Array(buf);
-        _results = [];
-        for (i = _i = 0, _ref = strRep.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-          _results.push(console.log(strRep.charCodeAt(i)));
-        }
-        return _results;
+        return console.log(image.data);
+      });
+    });
+    return it('can read image with BITPIX = -32', function() {
+      var fits, xhr;
+      fits = null;
+      xhr = new XMLHttpRequest();
+      xhr.open('GET', 'data/image-uint8.fits');
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function() {
+        return fits = new FITS.File(xhr.response);
+      };
+      xhr.send();
+      waitsFor(function() {
+        return fits != null;
+      });
+      return runs(function() {
+        var image;
+        image = fits.getDataUnit();
+        image.getFrame();
+        return console.log(image.data);
       });
     });
   });

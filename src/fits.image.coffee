@@ -69,8 +69,7 @@ class Image extends Data
     if @bitpix < 0
       @initArray(@arrayType) unless @data?
       height = @height
-      while height--
-        @getRow()
+      @getRow() while height--
     else
       @data = new @arrayType(buffer)
       for index in [0..numPixels-1]
